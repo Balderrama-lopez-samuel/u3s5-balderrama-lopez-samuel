@@ -1,0 +1,20 @@
+{# extends: hereda el molde común de base.html #}
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+  {# titulo_pagina: la vista manda "Nuevo servicio" o "Editar servicio", así esta plantilla sirve para ambas #}
+  <h1 class="text-2xl font-bold mb-6">{{ titulo_pagina }}</h1>
+
+  <form method="post" class="bg-white border border-slate-200 rounded-lg p-6">
+    {# csrf_token: obligatorio en todo formulario POST, sin él Django responde 403 #}
+    {% csrf_token %}
+    {# form.as_p: pinta cada campo dentro de un <p> con su label y sus errores #}
+    {{ form.as_p }}
+    <div class="flex gap-3">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">Guardar</button>
+      <a href="{% url 'servicios' %}" class="px-4 py-2 rounded border border-slate-300 hover:bg-slate-100">Cancelar</a>
+    </div>
+  </form>
+{% endblock %}

@@ -1,19 +1,22 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Servicios</title>
-  <!-- mismo Play CDN de Tailwind que usaste en la Semana 2 -->
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="max-w-2xl mx-auto py-10 px-6">
-  <h1 class="text-2xl font-bold mb-6">Servicios</h1>
-  <!-- table w-full: la tabla ocupa todo el ancho del contenedor -->
-  <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
+{# extends: ahora el listado también hereda de base.html #}
+{% extends 'core/base.html' %}
+
+{% block title %}Servicios{% endblock %}
+
+{% block content %}
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Servicios</h1>
+    {# url 'crear_servicio': arma la URL a partir del name= de la ruta, sin escribirla a mano #}
+    <a href="{% url 'crear_servicio' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">+ Nuevo servicio</a>
+  </div>
+
+  <table class="w-full bg-white border border-slate-200 rounded-lg overflow-hidden">
     <thead class="bg-slate-100">
       <tr>
         <th class="text-left px-4 py-2">Servicio</th>
+        <th class="text-left px-4 py-2">Categoría</th>
         <th class="text-left px-4 py-2">Precio</th>
+        <th class="text-left px-4 py-2">Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -21,14 +24,21 @@
       {# ojo: comentarios de Django y no de HTML, porque Django sí ejecuta las etiquetas dentro de los de HTML #}
       {% for servicio in servicios %}
       <tr class="border-t border-slate-200">
-        {# servicio.titulo: accede al campo 'titulo' del modelo Servicio #}
         <td class="px-4 py-2">{{ servicio.titulo }}</td>
-        {# servicio.precio: accede al campo 'precio' del modelo Servicio #}
+        <td class="px-4 py-2">{{ servicio.categoria }}</td>
         <td class="px-4 py-2">${{ servicio.precio }}</td>
+        <td class="px-4 py-2 space-x-3">
+          {# servicio.pk: la llave primaria, rellena el <int:pk> de la ruta #}
+          <a href="{% url 'editar_servicio' servicio.pk %}" class="text-blue-600 hover:underline">Editar</a>
+          <a href="{% url 'eliminar_servicio' servicio.pk %}" class="text-red-600 hover:underline">Eliminar</a>
+        </td>
       </tr>
-      {# endfor: cierra el bucle, obligatorio en Django (a diferencia de Python) #}
+      {# empty: se muestra solo cuando la lista no tiene ningún servicio #}
+      {% empty %}
+      <tr>
+        <td colspan="4" class="px-4 py-6 text-center text-slate-500">Todavía no hay servicios. Crea el primero con "+ Nuevo servicio".</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
-</body>
-</html>
+{% endblock %}

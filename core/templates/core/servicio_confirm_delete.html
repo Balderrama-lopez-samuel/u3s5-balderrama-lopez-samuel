@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Eliminar servicio{% endblock %}
+
+{% block content %}
+  <h1 class="text-2xl font-bold mb-6">Eliminar servicio</h1>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-6">
+    {# servicio: el registro que la vista encontró con get_object_or_404 #}
+    <p class="mb-6">¿Seguro que quieres eliminar <strong>{{ servicio.titulo }}</strong>? Esta acción no se puede deshacer.</p>
+    {# el borrado solo ocurre al enviar este formulario por POST, nunca al abrir la página #}
+    <form method="post" class="flex gap-3">
+      {% csrf_token %}
+      <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded">Sí, eliminar</button>
+      <a href="{% url 'servicios' %}" class="px-4 py-2 rounded border border-slate-300 hover:bg-slate-100">Cancelar</a>
+    </form>
+  </div>
+{% endblock %}

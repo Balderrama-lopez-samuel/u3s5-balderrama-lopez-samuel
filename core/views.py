@@ -1,8 +1,12 @@
 # render: función que combina una plantilla con datos y arma la respuesta HTTP
-from django.shortcuts import render
+# redirect: manda al navegador a otra URL · get_object_or_404: busca un registro o responde 404
+from django.shortcuts import render, redirect, get_object_or_404
+# login_required: decorador que exige sesión iniciada, si no manda a LOGIN_URL
+from django.contrib.auth.decorators import login_required
 # connection: objeto de Django que expone la configuración de la base de datos activa
 from django.db import connection
 from .models import Servicio
+from .forms import ServicioForm
 
 # def: toda vista es una función que recibe "request" (la petición del navegador)
 def inicio(request):
@@ -15,9 +19,60 @@ def inicio(request):
     }
     # render: junta el template "core/inicio.html" con el contexto y devuelve el HTML final
     return render(request, 'core/inicio.html', contexto)
-# nueva función de vista, además de "inicio" que ya tenías
+
+# servicios: el listado (la "R" de CRUD)
 def servicios(request):
     # Servicio.objects.all(): trae todos los registros de la tabla core_servicio en MySQL
     lista_servicios = Servicio.objects.all()
-    return render(request, 'core/servicios.html', {'servicios': lista_servicios})
     # se la pasamos a la plantilla con la clave 'servicios'
+    return render(request, 'core/servicios.html', {'servicios': lista_servicios})
+
+# crear_servicio: la "C" de CRUD
+@login_required
+def crear_servicio(request):
+    # POST: el usuario envió el formulario
+    if request.method == 'POST':
+        # request.POST: los datos que escribió el usuario
+        form = ServicioForm(request.POST)
+        # is_valid(): revisa tipos, campos obligatorios y clean_precio
+        if form.is_valid():
+            # commit=False: arma el objeto pero todavía no lo guarda en MySQL
+            servicio = form.save(commit=False)
+            # propietario no está en el formulario, se lo asignamos al usuario logueado
+            servicio.propietario = request.user
+            servicio.save()
+            # redirect: después de un POST exitoso se redirige para no reenviar al recargar
+            return redirect('servicios')
+    # GET: el usuario solo abrió la página, se muestra el formulario vacío
+    else:
+        form = ServicioForm()
+    # si el POST no fue válido, se vuelve a pintar el form con sus errores
+    return render(request, 'core/servicio_form.html', {'form': form, 'titulo_pagina': 'Nuevo servicio'})
+
+# editar_servicio: la "U" de CRUD · pk: el id que llega desde la URL
+@login_required
+def editar_servicio(request, pk):
+    # get_object_or_404: si no existe un Servicio con ese pk, responde 404 en vez de error 500
+    servicio = get_object_or_404(Servicio, pk=pk)
+    if request.method == 'POST':
+        # instance=servicio: actualiza ese registro en vez de crear uno nuevo
+        form = ServicioForm(request.POST, instance=servicio)
+        if form.is_valid():
+            form.save()
+            return redirect('servicios')
+    else:
+        # instance=servicio: el formulario aparece rellenado con los datos actuales
+        form = ServicioForm(instance=servicio)
+    # reutiliza la misma plantilla que crear_servicio
+    return render(request, 'core/servicio_form.html', {'form': form, 'titulo_pagina': 'Editar servicio'})
+
+# eliminar_servicio: la "D" de CRUD
+@login_required
+def eliminar_servicio(request, pk):
+    servicio = get_object_or_404(Servicio, pk=pk)
+    # solo se borra con POST (al confirmar), nunca con solo abrir el enlace
+    if request.method == 'POST':
+        servicio.delete()
+        return redirect('servicios')
+    # GET: muestra la página de confirmación
+    return render(request, 'core/servicio_confirm_delete.html', {'servicio': servicio})
